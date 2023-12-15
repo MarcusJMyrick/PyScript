@@ -1,0 +1,36 @@
+from bs4 import BeautifulSoup
+
+# Sample HTML content
+html_content = '''
+<figure class="wp-block-table"><table><tbody><tr><td>
+<img class="aligncenter wp-image-34676" src="https://hekint.org/wp-content/uploads/2021/02/Rita-Troiano-Dacy-150x150.png" alt="Compilation of photos including one photo of Dirty Helen" width="473" height="400">
+</td></tr><tr><td><strong>Upper left: The author’s mother, Rita Troiano, a year or so after the incident at the Sunflower Inn;</strong>
+<strong>Lower left:</strong> <strong>the author’s grandparents, Philip and Evelyn Troiano, ca. 1928</strong>, both from the author’s personal collection.
+<strong>Right: Helen Cromwell at the Sunflower Inn,</strong> Feral House Publishing, used with permission.</td></tr></tbody></table></figure>
+'''
+
+# Use BeautifulSoup to parse the HTML content
+soup = BeautifulSoup(html_content, 'html.parser')
+
+# Find the figure with the 'wp-block-table' class
+table_figure = soup.find('figure', class_='wp-block-table')
+
+# Extract the image and caption from the table
+img_tag = table_figure.find('img')
+caption_tag = table_figure.find('td').find_all('strong')
+
+# Create the new figure block
+new_figure = soup.new_tag('figure', **{'class': 'wp-block-image alignright size-full is-resized'})
+new_img = soup.new_tag('img', src=img_tag['src'], alt=img_tag.get('alt', ''), **{'class': 'wp-image-42193', 'style': 'width:420px;height:auto'})
+new_figure.insert(0, new_img)
+
+# Create the figcaption and add it to the new figure
+new_figcaption = soup.new_tag('figcaption', **{'class': 'wp-element-caption'})
+new_figcaption.string = ' '.join(str(tag) for tag in caption_tag)
+new_figure.insert(1, new_figcaption)
+
+# Replace the old figure with the new one
+table_figure.replace_with(new_figure)
+
+# Output the modified HTML
+print(soup.prettify())
